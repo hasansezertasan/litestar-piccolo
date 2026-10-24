@@ -40,6 +40,8 @@ def _null_first(schema: Any) -> Any:
             else _null_first(value)
             for key, value in schema.items()
         }
+    if isinstance(schema, list):
+        return [_null_first(item) for item in schema]
     return schema
 
 

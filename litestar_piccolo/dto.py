@@ -1,8 +1,9 @@
 from __future__ import annotations
 
+from collections.abc import Generator  # noqa: TCH003  # needed at runtime by get_type_hints
 from dataclasses import replace
 from decimal import Decimal
-from typing import TYPE_CHECKING, Annotated, Any, Generic, TypeVar
+from typing import Annotated, Any, Generic, TypeVar
 
 from litestar.dto import AbstractDTO, DTOField, Mark
 from litestar.dto.data_structures import DTOFieldDefinition
@@ -11,9 +12,6 @@ from litestar.typing import FieldDefinition
 from msgspec import Meta
 from piccolo.columns import Column, column_types
 from piccolo.table import Table
-
-if TYPE_CHECKING:
-    from collections.abc import Generator
 
 T = TypeVar("T", bound=Table)
 
