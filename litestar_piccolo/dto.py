@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import replace
 from decimal import Decimal
-from typing import Any, Generator, Generic, List, Optional, TypeVar
+from typing import TYPE_CHECKING, Annotated, Any, Generic, TypeVar
 
 from litestar.dto import AbstractDTO, DTOField, Mark
 from litestar.dto.data_structures import DTOFieldDefinition
@@ -11,7 +11,9 @@ from litestar.typing import FieldDefinition
 from msgspec import Meta
 from piccolo.columns import Column, column_types
 from piccolo.table import Table
-from typing_extensions import Annotated
+
+if TYPE_CHECKING:
+    from collections.abc import Generator
 
 T = TypeVar("T", bound=Table)
 
@@ -37,16 +39,16 @@ class PiccoloDTO(AbstractDTO[T], Generic[T]):
 
 
 def _parse_piccolo_type(column: Column, extra: dict[str, Any]) -> FieldDefinition:
-    if isinstance(column, (column_types.Decimal, column_types.Numeric)):
+    if isinstance(column, column_types.Decimal | column_types.Numeric):
         column_type: Any = Decimal
         meta = Meta(extra=extra)
-    elif isinstance(column, (column_types.Email, column_types.Varchar)):
+    elif isinstance(column, column_types.Email | column_types.Varchar):
         column_type = str
         meta = Meta(max_length=column.length, extra=extra)
     elif isinstance(column, column_types.Array):
-        column_type = List[column.base_column.value_type]  # type: ignore[name-defined]
+        column_type = list[column.base_column.value_type]  # type: ignore[name-defined]
         meta = Meta(extra=extra)
-    elif isinstance(column, (column_types.JSON, column_types.JSONB)):
+    elif isinstance(column, column_types.JSON | column_types.JSONB):
         column_type = str
         meta = Meta(extra={**extra, "format": "json"})
     elif isinstance(column, column_types.Text):
@@ -57,7 +59,7 @@ def _parse_piccolo_type(column: Column, extra: dict[str, Any]) -> FieldDefinitio
         meta = Meta(extra=extra)
 
     if not column._meta.required:  # noqa: SLF001
-        column_type = Optional[column_type]
+        column_type = column_type | None
 
     return FieldDefinition.from_annotation(Annotated[column_type, meta])
 
